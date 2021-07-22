@@ -18,7 +18,6 @@ class BooksApp extends StatefulWidget {
 
 class _BooksAppState extends State<BooksApp> {
   Book? _selectedBook;
-  bool show404 = false;
   List<Book> books = [
     Book('Left Hand of Darkness', 'Ursula K. Le Guin'),
     Book('Too Like the Lightning', 'Ada Palmer'),
@@ -29,10 +28,6 @@ class _BooksAppState extends State<BooksApp> {
     setState(() {
       _selectedBook = book;
     });
-  }
-
-  void initState() {
-    super.initState();
   }
 
   @override
@@ -47,9 +42,51 @@ class _BooksAppState extends State<BooksApp> {
               books: books,
               onTapped: _handleBookTapped,
             ),
-          )
+          ),
+          if (_selectedBook != null)
+            BookDetailsPage(
+              book: _selectedBook,
+            ),
         ],
-        onPopPage: (route, result) => route.didPop(result),
+        onPopPage: (route, result) {
+          if (!route.didPop(result)) {
+            return false;
+          }
+
+          // Update the list of pages by setting _selectedBook to null
+          setState(() {
+            _selectedBook = null;
+          });
+
+          return true;
+        },
+      ),
+    );
+  }
+}
+
+class BookDetailsScreen extends StatelessWidget {
+  final Book? book;
+
+  BookDetailsScreen({
+    required this.book,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (book != null) ...[
+              Text(book!.title, style: Theme.of(context).textTheme.headline6),
+              Text(book!.author, style: Theme.of(context).textTheme.subtitle1),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -76,6 +113,23 @@ class BooksListScreen extends StatelessWidget {
             )
         ],
       ),
+    );
+  }
+}
+
+class BookDetailsPage extends Page {
+  final Book? book;
+
+  BookDetailsPage({
+    this.book,
+  }) : super(key: ValueKey(book));
+
+  Route createRoute(BuildContext context) {
+    return MaterialPageRoute(
+      settings: this,
+      builder: (BuildContext context) {
+        return BookDetailsScreen(book: book);
+      },
     );
   }
 }
